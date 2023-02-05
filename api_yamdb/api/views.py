@@ -1,6 +1,8 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
 
 from rest_framework import filters, permissions, status
 from rest_framework import mixins, permissions, status, viewsets
@@ -8,10 +10,15 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api.serializers import CreateUserSerializer, GetTokenSerializer
-from api.serializers import UserSerialiser, SelfEditSerializer
+from api.serializers import (CreateUserSerializer, GetTokenSerializer,
+                             UserSerialiser, SelfEditSerializer,
+                             CategorySerializer, GenreSerializer,
+                             TitleReadSerializer, TitleWriteSerializer,)
 from users.models import User
-from .permissions import AdministratorEdit
+from reviews.models import Category, Genre, Title
+from .permissions import AdministratorEdit, IsAnonymous
+from .filters import TitleFilter
+from .mixins import CreateListDestroyMixinSet
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -57,8 +64,8 @@ class CreateUserViewSet(mixins.CreateModelMixin,
     def create(self, request):
         serializer = CreateUserSerializer(data=request.data)
         if User.objects.filter(
-            username=request.data.get('username'),
-            email=request.data.get('email')
+                username=request.data.get('username'),
+                email=request.data.get('email')
         ).exists():
             user = get_object_or_404(
                 User,
@@ -94,10 +101,31 @@ class GetTokenViewSet(mixins.CreateModelMixin,
         confirmation_code = serializer.validated_data.get('confirmation_code')
         user = get_object_or_404(User, username=username)
         if default_token_generator.check_token(
-            user,
-            confirmation_code
+                user,
+                confirmation_code
         ) is False:
             message = {'confirmation_code': 'Неверный код подтверждения'}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
         message = {'token': str(AccessToken.for_user(user))}
         return Response(message, status=status.HTTP_200_OK)
+
+
+class CategoryViewSet(CreateListDestroyMixinSet):
+    queryset = Category.objects.all().order_by('name')
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(CreateListDestroyMixinSet):
+    queryset = Genre.objects.all().order_by('name')
+    serializer_class = GenreSerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    permission_classes = [IsAnonymous | AdministratorEdit]
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleWriteSerializer
