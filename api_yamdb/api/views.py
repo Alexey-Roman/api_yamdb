@@ -67,7 +67,7 @@ class CreateUserViewSet(mixins.CreateModelMixin,
             response_data = request.data
         else:
             serializer.is_valid(raise_exception=True)
-            user, _ = User.objects.get_or_create(**serializer.validated_data)
+            user = User.objects.create(**serializer.validated_data)
             response_data = serializer.data
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
