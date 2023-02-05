@@ -1,6 +1,10 @@
+from datetime import date
+
 from rest_framework import serializers
+from django.core.validators import MaxValueValidator
 
 from users.models import User
+from reviews.models import Category, Genre, Title
 
 
 class UserSerialiser(serializers.ModelSerializer):
@@ -59,7 +63,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class GetTokenSerializer(serializers.Serializer):
-    """Сериалайзер для передаче токена при регистрации"""
+    """Сериалайзер для передачи токена при регистрации"""
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
         max_length=150,
@@ -68,3 +72,44 @@ class GetTokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(
         required=True
     )
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['name', 'slug']
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = ['name', 'slug']
+
+
+class TitleReadSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(
+        read_only=True,
+        many=True
+    )
+    rating = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        fields = '__all__'
+        model = Title
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Title
