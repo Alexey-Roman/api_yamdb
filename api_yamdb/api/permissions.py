@@ -12,11 +12,6 @@ class AdministratorEdit(permissions.BasePermission):
         )
 
 
-class IsAnonymous(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return not request.user.is_authenticated
-
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Проверка прав администратора."""
     message = 'Нужны права администратора.'

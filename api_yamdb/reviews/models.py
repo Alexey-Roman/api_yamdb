@@ -1,13 +1,9 @@
 from django.db import models
 from django.db.models import SlugField, CharField
-from django.core.validators import RegexValidator
-
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
+
+from users.models import User
 from .validators import SLUG_VALIDATOR, year_validator
-
-
-User = get_user_model()
 
 
 class Category(models.Model):
@@ -29,7 +25,6 @@ class Category(models.Model):
 
     def __str__(self) -> SlugField:
         return self.name
-
 
 
 class GenreCategory(models.Model):

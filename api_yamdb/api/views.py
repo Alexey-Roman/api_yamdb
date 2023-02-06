@@ -18,10 +18,10 @@ from api.serializers import (CreateUserSerializer, GetTokenSerializer,
                              ReviewSerializer, CommentSerializer)
 from users.models import User
 from reviews.models import Category, Comment, Genre, Review, Title
-from .permissions import (AdministratorEdit, IsAnonymous, IsAdminOrReadOnly,
-                          IsAdminOrModeratirOrAuthor,)
 from .filters import TitleFilter
-from .mixins import CreateListDestroyMixinSet
+from .mixins import CLDMixinSet
+from .permissions import (AdministratorEdit, IsAdminOrReadOnly,
+                          IsAdminOrModeratirOrAuthor,)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -111,15 +111,6 @@ class GetTokenViewSet(mixins.CreateModelMixin,
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
         message = {'token': str(AccessToken.for_user(user))}
         return Response(message, status=status.HTTP_200_OK)
-
-
-class CLDMixinSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
-    pass
 
 
 class GenreViewSet(CLDMixinSet):
