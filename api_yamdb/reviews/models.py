@@ -2,7 +2,12 @@ from django.db import models
 from django.db.models import SlugField, CharField
 from django.core.validators import RegexValidator
 
+from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from .validators import SLUG_VALIDATOR, year_validator
+
+
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -24,6 +29,15 @@ class Category(models.Model):
 
     def __str__(self) -> SlugField:
         return self.name
+
+
+
+class GenreCategory(models.Model):
+    name = models.CharField(max_length=50,)
+    slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        abstract = True
 
 
 class Genre(models.Model):
@@ -58,10 +72,6 @@ class Title(models.Model):
         validators=(year_validator,),
         db_index=True,
     )
-    rating = models.IntegerField(
-        verbose_name='Рейтинг поста',
-        null=True,
-    )
     description = models.TextField(
         verbose_name='Описание',
         blank=True,
@@ -70,13 +80,14 @@ class Title(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        related_name='category',
+        related_name='titles',
         verbose_name='Категория',
         blank=True,
         null=True,
     )
     genre = models.ManyToManyField(
         Genre,
+        related_name='titles',
         verbose_name='Жанр',
     )
 
@@ -87,3 +98,60 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class GenreTitle(models.Model):
+    """Произведения-Жанры."""
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.genre}{self.title}'
+
+
+class ParentingModel(models.Model):
+    text = models.TextField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+
+class Review(ParentingModel):
+    """Отзывы."""
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    score = models.IntegerField(
+        validators=[MinValueValidator(1),
+                    MaxValueValidator(10)]
+    )
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Отзывы'
+        unique_together = ('author', 'title',)
+
+
+class Comment(ParentingModel):
+    """Комментарии."""
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name="comments"
+    )
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Комментарии'
+        ordering = ['id', ]
