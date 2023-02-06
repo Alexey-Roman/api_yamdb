@@ -1,4 +1,3 @@
-from datetime import date
 import datetime as dt
 
 from rest_framework import serializers
