@@ -3,7 +3,11 @@ import datetime as dt
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import RegexValidator
 from django.shortcuts import get_object_or_404
+
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from users.models import User
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -41,6 +45,25 @@ class SelfEditSerializer(serializers.ModelSerializer):
 
 class CreateUserSerializer(serializers.ModelSerializer):
     """Сериалайзер при создании нового пользователя"""
+    username = serializers.CharField(
+        max_length=150,
+        validators=[
+            RegexValidator(
+                regex=r'^[\w.@+-]+\Z',
+                message=(
+                    'В логине разрешены только буквы, цифры и символы  @.+-_'
+                )
+            ),
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+    email = serializers.EmailField(
+        max_length=254,
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+
     class Meta:
         fields = (
             'email',
@@ -52,14 +75,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
         if data.get('username') == 'me':
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
-            )
-        if User.objects.filter(username=data.get('username')):
-            raise serializers.ValidationError(
-                'Такой пользователь существует'
-            )
-        if User.objects.filter(email=data.get('email')):
-            raise serializers.ValidationError(
-                'Пользователь с таким email существует'
             )
         return data
 
