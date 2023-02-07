@@ -16,6 +16,7 @@ from api.serializers import (CreateUserSerializer, GetTokenSerializer,
                              CategorySerializer, GenreSerializer,
                              TitleReadSerializer, TitleWriteSerializer,
                              ReviewSerializer, CommentSerializer)
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 from reviews.models import Category, Comment, Genre, Review, Title
 from .filters import TitleFilter
@@ -45,16 +46,14 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == "GET":
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.method == "PATCH":
-            serializer = self.get_serializer(
-                user,
-                data=request.data,
-                partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CreateUserViewSet(mixins.CreateModelMixin,
@@ -83,7 +82,7 @@ class CreateUserViewSet(mixins.CreateModelMixin,
         send_mail(
             subject='Код подтверждения',
             message=f'Ваш код подтверждения: {confirmation_code}',
-            from_email=None,
+            from_email=DEFAULT_FROM_EMAIL,
             recipient_list=(user.email,),
             fail_silently=False,
         )
