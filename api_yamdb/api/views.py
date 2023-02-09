@@ -127,7 +127,7 @@ class CategoryViewSet(CreateListDestroyMixinSet):
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = PageNumberPagination
-    search_fields = ('=name',)
+    search_fields = ('name',)
     lookup_field = "slug"
     filter_backends = [filters.SearchFilter]
 
