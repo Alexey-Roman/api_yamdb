@@ -21,7 +21,8 @@ class Category(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Категории'
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self) -> SlugField:
         return self.name
@@ -50,7 +51,8 @@ class Genre(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Жанры'
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self) -> CharField:
         return self.name
@@ -105,7 +107,7 @@ class GenreTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.genre}{self.title}'
+        return f'{self.genre} - {self.title}'
 
 
 class ParentingModel(models.Model):
@@ -134,7 +136,8 @@ class Review(ParentingModel):
 
     class Meta:
         ordering = ['-id']
-        verbose_name = 'Отзывы'
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         unique_together = ('author', 'title',)
 
 
@@ -148,5 +151,6 @@ class Comment(ParentingModel):
 
     class Meta:
         ordering = ['-id']
-        verbose_name = 'Комментарии'
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
         ordering = ['id', ]
