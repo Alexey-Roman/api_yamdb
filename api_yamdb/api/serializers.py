@@ -92,29 +92,15 @@ class GetTokenSerializer(serializers.Serializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор для категорий."""
-
-    slug = serializers.SlugField(
-        max_length=50, min_length=None, allow_blank=False)
-
-    def validate_slug(self, value):
-        if Category.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(
-                'Категория с таким slug уже существует!')
-        return value
-
     class Meta:
         model = Category
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
+        fields = ['name', 'slug']
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Сериализатор для жанров."""
     class Meta:
         model = Genre
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
+        fields = ['name', 'slug']
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
