@@ -20,7 +20,7 @@ from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 from reviews.models import Category, Comment, Genre, Review, Title
 from .filters import TitleFilter
-from .mixins import CLDMixinSet
+from .mixins import CreateListDestroyMixinSet
 from .permissions import (AdministratorEdit, IsAdminOrReadOnly,
                           IsAdminOrModeratirOrAuthor,)
 
@@ -112,7 +112,7 @@ class GetTokenViewSet(mixins.CreateModelMixin,
         return Response(message, status=status.HTTP_200_OK)
 
 
-class GenreViewSet(CLDMixinSet):
+class GenreViewSet(CreateListDestroyMixinSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -122,12 +122,12 @@ class GenreViewSet(CLDMixinSet):
     lookup_field = 'slug'
 
 
-class CategoryViewSet(CLDMixinSet):
+class CategoryViewSet(CreateListDestroyMixinSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = PageNumberPagination
-    search_fields = ('=name',)
+    search_fields = ('name',)
     lookup_field = "slug"
     filter_backends = [filters.SearchFilter]
 
