@@ -165,7 +165,12 @@ class CommentViewSet(ReviewViewSet):
     serializer_class = CommentSerializer
 
     def review_query(self):
-        return get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        review = get_object_or_404(
+            Review.objects.filter(title_id=title.id), pk=review.id
+        )
+        return review
 
     def get_queryset(self):
         return Comment.objects.filter(review=self.review_query().id)
