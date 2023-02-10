@@ -18,7 +18,7 @@ from api.serializers import (CreateUserSerializer, GetTokenSerializer,
                              ReviewSerializer, CommentSerializer)
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title
 from .filters import TitleFilter
 from .mixins import CreateListDestroyMixinSet
 from .permissions import (AdministratorEdit, IsAdminOrReadOnly,
@@ -173,7 +173,8 @@ class CommentViewSet(ReviewViewSet):
         return review
 
     def get_queryset(self):
-        return Comment.objects.filter(review=self.review_query().id)
+        review = get_object_or_404(Review, pk=self.kwargs.get("review_id"))
+        return review.comments.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.review_query())

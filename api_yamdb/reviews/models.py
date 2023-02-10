@@ -17,6 +17,7 @@ class BasicPolishContent(models.Model):
     class Meta:
         abstract = True
 
+
 class Category(models.Model):
     """Категории произведений."""
     name = models.CharField(

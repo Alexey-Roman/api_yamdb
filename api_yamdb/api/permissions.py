@@ -35,7 +35,7 @@ class IsAdminOrModeratirOrAuthor(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or request.user.is_superuser
-            or request.user.role == 'admin'
-            or request.user.role == 'moderator'
+            or request.user.is_admin
+            or request.user.is_moderator
             or request.user == obj.author
         )
