@@ -6,6 +6,17 @@ from users.models import User
 from .validators import SLUG_VALIDATOR, year_validator
 
 
+class BasicPolishContent(models.Model):
+    text = models.TextField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
 class Category(models.Model):
     """Категории произведений."""
     name = models.CharField(
@@ -110,19 +121,7 @@ class GenreTitle(models.Model):
         return f'{self.genre} - {self.title}'
 
 
-class ParentingModel(models.Model):
-    text = models.TextField()
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-    )
-    pub_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        abstract = True
-
-
-class Review(ParentingModel):
+class Review(BasicPolishContent):
     """Отзывы."""
     title = models.ForeignKey(
         Title,
@@ -141,7 +140,7 @@ class Review(ParentingModel):
         unique_together = ('author', 'title',)
 
 
-class Comment(ParentingModel):
+class Comment(BasicPolishContent):
     """Комментарии."""
     review = models.ForeignKey(
         Review,
