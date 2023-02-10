@@ -3,7 +3,11 @@ import datetime as dt
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import RegexValidator
 from django.shortcuts import get_object_or_404
+
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from users.models import User
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -41,6 +45,25 @@ class SelfEditSerializer(serializers.ModelSerializer):
 
 class CreateUserSerializer(serializers.ModelSerializer):
     """Сериалайзер при создании нового пользователя"""
+    username = serializers.CharField(
+        max_length=150,
+        validators=[
+            RegexValidator(
+                regex=r'^[\w.@+-]+\Z',
+                message=(
+                    'В логине разрешены только буквы, цифры и символы  @.+-_'
+                )
+            ),
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+    email = serializers.EmailField(
+        max_length=254,
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+
     class Meta:
         fields = (
             'email',
@@ -52,14 +75,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
         if data.get('username') == 'me':
             raise serializers.ValidationError(
                 'Использовать имя me запрещено'
-            )
-        if User.objects.filter(username=data.get('username')):
-            raise serializers.ValidationError(
-                'Такой пользователь существует'
-            )
-        if User.objects.filter(email=data.get('email')):
-            raise serializers.ValidationError(
-                'Пользователь с таким email существует'
             )
         return data
 
@@ -77,29 +92,15 @@ class GetTokenSerializer(serializers.Serializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор для категорий."""
-
-    slug = serializers.SlugField(
-        max_length=50, min_length=None, allow_blank=False)
-
-    def validate_slug(self, value):
-        if Category.objects.filter(slug=value).exists():
-            raise serializers.ValidationError(
-                'Категория с таким slug уже существует!')
-        return value
-
     class Meta:
         model = Category
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
+        fields = ['name', 'slug']
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    """Сериализатор для жанров."""
     class Meta:
         model = Genre
-        fields = ('name', 'slug',)
-        lookup_field = 'slug'
+        fields = ['name', 'slug']
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
@@ -126,8 +127,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         many=True,
-        queryset=Genre.objects.all(),
-        validators=[MinValueValidator(0), MaxValueValidator(50)],)
+        queryset=Genre.objects.all())
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all(),)
@@ -136,12 +136,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-
-    def validate_year(self, value):
-        if value > dt.datetime.now().year:
-            raise serializers.ValidationError(
-                'Значение года не может быть больше текущего')
-        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -157,7 +151,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate_score(self, value):
         if 0 > value > 10:
-            raise serializers.ValidationError('Оценка по 10-бальной шкале!')
+            raise serializers.ValidationError('Оценка должна быть по 10-бальной шкале!')
         return value
 
     def validate(self, data):
@@ -170,7 +164,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             and Review.objects.filter(title=title, author=author).exists()
         ):
             raise ValidationError(
-                'Больше одного отзыва на title писать нельзя'
+                'Больше одного отзыва на произведение писать нельзя'
             )
         return data
 

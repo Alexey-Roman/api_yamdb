@@ -16,10 +16,11 @@ from api.serializers import (CreateUserSerializer, GetTokenSerializer,
                              CategorySerializer, GenreSerializer,
                              TitleReadSerializer, TitleWriteSerializer,
                              ReviewSerializer, CommentSerializer)
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title
 from .filters import TitleFilter
-from .mixins import CLDMixinSet
+from .mixins import CreateListDestroyMixinSet
 from .permissions import (AdministratorEdit, IsAdminOrReadOnly,
                           IsAdminOrModeratirOrAuthor,)
 
@@ -45,16 +46,14 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == "GET":
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        if request.method == "PATCH":
-            serializer = self.get_serializer(
-                user,
-                data=request.data,
-                partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CreateUserViewSet(mixins.CreateModelMixin,
@@ -83,7 +82,7 @@ class CreateUserViewSet(mixins.CreateModelMixin,
         send_mail(
             subject='Код подтверждения',
             message=f'Ваш код подтверждения: {confirmation_code}',
-            from_email=None,
+            from_email=DEFAULT_FROM_EMAIL,
             recipient_list=(user.email,),
             fail_silently=False,
         )
@@ -113,7 +112,7 @@ class GetTokenViewSet(mixins.CreateModelMixin,
         return Response(message, status=status.HTTP_200_OK)
 
 
-class GenreViewSet(CLDMixinSet):
+class GenreViewSet(CreateListDestroyMixinSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -123,12 +122,12 @@ class GenreViewSet(CLDMixinSet):
     lookup_field = 'slug'
 
 
-class CategoryViewSet(CLDMixinSet):
+class CategoryViewSet(CreateListDestroyMixinSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = PageNumberPagination
-    search_fields = ('=name',)
+    search_fields = ('name',)
     lookup_field = "slug"
     filter_backends = [filters.SearchFilter]
 
@@ -166,10 +165,16 @@ class CommentViewSet(ReviewViewSet):
     serializer_class = CommentSerializer
 
     def review_query(self):
-        return get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        review = get_object_or_404(
+            Review.objects.filter(title_id=title.id), pk=review.id
+        )
+        return review
 
     def get_queryset(self):
-        return Comment.objects.filter(review=self.review_query().id)
+        review = get_object_or_404(Review, pk=self.kwargs.get("review_id"))
+        return review.comments.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.review_query())

@@ -1,13 +1,11 @@
 from rest_framework import permissions
 
-from users.enums import UserRole
-
 
 class AdministratorEdit(permissions.BasePermission):
     """Проверка на раоль администратора либо суперпользователя"""
     def has_permission(self, request, view):
         return request.user.is_authenticated and (
-            request.user.role == UserRole.admin.name
+            request.user.is_admin
             or request.user.is_superuser
         )
 
@@ -19,7 +17,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
                 or (request.user.is_authenticated and (
-                    request.user.role == 'admin'
+                    request.user.is_admin
                     or request.user.is_superuser)))
 
 
@@ -37,7 +35,7 @@ class IsAdminOrModeratirOrAuthor(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or request.user.is_superuser
-            or request.user.role == 'admin'
-            or request.user.role == 'moderator'
+            or request.user.is_admin
+            or request.user.is_moderator
             or request.user == obj.author
         )

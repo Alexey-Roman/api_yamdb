@@ -6,6 +6,18 @@ from users.models import User
 from .validators import SLUG_VALIDATOR, year_validator
 
 
+class BasicPolishContent(models.Model):
+    text = models.TextField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    pub_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+
 class Category(models.Model):
     """Категории произведений."""
     name = models.CharField(
@@ -21,7 +33,8 @@ class Category(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Категории'
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self) -> SlugField:
         return self.name
@@ -50,7 +63,8 @@ class Genre(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Жанры'
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self) -> CharField:
         return self.name
@@ -105,22 +119,10 @@ class GenreTitle(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.genre}{self.title}'
+        return f'{self.genre} - {self.title}'
 
 
-class ParentingModel(models.Model):
-    text = models.TextField()
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-    )
-    pub_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        abstract = True
-
-
-class Review(ParentingModel):
+class Review(BasicPolishContent):
     """Отзывы."""
     title = models.ForeignKey(
         Title,
@@ -134,11 +136,12 @@ class Review(ParentingModel):
 
     class Meta:
         ordering = ['-id']
-        verbose_name = 'Отзывы'
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         unique_together = ('author', 'title',)
 
 
-class Comment(ParentingModel):
+class Comment(BasicPolishContent):
     """Комментарии."""
     review = models.ForeignKey(
         Review,
@@ -148,5 +151,6 @@ class Comment(ParentingModel):
 
     class Meta:
         ordering = ['-id']
-        verbose_name = 'Комментарии'
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
         ordering = ['id', ]
