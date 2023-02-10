@@ -1,8 +1,5 @@
-import datetime as dt
-
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.validators import RegexValidator
 from django.shortcuts import get_object_or_404
 
@@ -151,7 +148,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate_score(self, value):
         if 0 > value > 10:
-            raise serializers.ValidationError('Оценка должна быть по 10-бальной шкале!')
+            raise serializers.ValidationError(
+                'Оценка должна быть по 10-бальной шкале!'
+            )
         return value
 
     def validate(self, data):
