@@ -8,6 +8,7 @@ from rest_framework.validators import UniqueValidator
 
 from users.models import User
 from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.validators import year_validator
 
 
 class UserSerialiser(serializers.ModelSerializer):
@@ -128,7 +129,9 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all(),)
-    year = serializers.IntegerField()
+    year = serializers.IntegerField(
+        validators=(year_validator,),
+    )
 
     class Meta:
         model = Title
