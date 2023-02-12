@@ -6,7 +6,7 @@ from users.models import User
 from .validators import SLUG_VALIDATOR, year_validator
 
 
-class BasicPolishContent(models.Model):
+class BasicUserContent(models.Model):
     text = models.TextField()
     author = models.ForeignKey(
         User,
@@ -122,7 +122,7 @@ class GenreTitle(models.Model):
         return f'{self.genre} - {self.title}'
 
 
-class Review(BasicPolishContent):
+class Review(BasicUserContent):
     """Отзывы."""
     title = models.ForeignKey(
         Title,
@@ -141,7 +141,7 @@ class Review(BasicPolishContent):
         unique_together = ('author', 'title',)
 
 
-class Comment(BasicPolishContent):
+class Comment(BasicUserContent):
     """Комментарии."""
     review = models.ForeignKey(
         Review,

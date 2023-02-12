@@ -81,7 +81,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for model, csv_f in MODEL_CSV.items():
-            path = os.path.join(settings.BASE_DIR, 'static/data', csv_f)
+            path = os.path.join(settings.BASE_DIR, 'static', 'data', csv_f)
             with open(path, 'r', encoding='utf-8') as csv_file:
                 reader = csv.reader(csv_file)
                 next(reader)
