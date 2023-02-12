@@ -64,5 +64,5 @@ python3 manage.py runserver
 
 Загрузить данные из csv файлов:
 ```
-python3 manage.py uploadDB
+python3 manage.py upload_db
 ```
