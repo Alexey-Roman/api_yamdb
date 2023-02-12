@@ -11,11 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api.serializers import (CreateUserSerializer, GetTokenSerializer,
-                             UserSerialiser, SelfEditSerializer,
-                             CategorySerializer, GenreSerializer,
-                             TitleReadSerializer, TitleWriteSerializer,
-                             ReviewSerializer, CommentSerializer)
+
 from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from users.models import User
 from reviews.models import Category, Genre, Review, Title
@@ -23,6 +19,11 @@ from .filters import TitleFilter
 from .mixins import CreateListDestroyMixinSet
 from .permissions import (AdministratorEdit, IsAdminOrReadOnly,
                           IsAdminOrModeratirOrAuthor,)
+from .serializers import (CreateUserSerializer, GetTokenSerializer,
+                          UserSerialiser, SelfEditSerializer,
+                          CategorySerializer, GenreSerializer,
+                          TitleReadSerializer, TitleWriteSerializer,
+                          ReviewSerializer, CommentSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):

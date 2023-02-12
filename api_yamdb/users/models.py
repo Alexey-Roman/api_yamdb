@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
+from .validators import validate_username_not_me
+
 
 class User(AbstractUser):
     USER = 'user'
@@ -21,7 +23,9 @@ class User(AbstractUser):
         validators=[RegexValidator(
             regex=r'^[\w.@+-]+\Z',
             message='В логине разрешены только буквы, цифры и символы  @.+-_'
-        )]
+        ),
+            validate_username_not_me,
+        ]
     )
     email = models.EmailField(
         max_length=254,
